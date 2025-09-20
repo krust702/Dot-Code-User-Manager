@@ -18,7 +18,7 @@ interface Props {
   }) => void;
   submitLabel: string;
   title?: string;
-  onCheckDuplicate: (email: string) => boolean;
+  onCheckDuplicate: (email: string, ignoreId?: string) => boolean;
 }
 
 const UserForm: React.FC<Props> = ({
@@ -36,15 +36,10 @@ const UserForm: React.FC<Props> = ({
   const [submitted, setSubmitted] = useState(false);
 
   const validate = () => {
-    if (!firstName || !lastName || !email) {
-      return 'Please fill all fields';
-    }
-    if (!isValidEmail(email)) {
-      return 'Please enter a valid email address';
-    }
-    if (onCheckDuplicate(email)) {
+    if (!firstName || !lastName || !email) return 'Please fill all fields';
+    if (!isValidEmail(email)) return 'Please enter a valid email address';
+    if (onCheckDuplicate(email, initialValues?.id))
       return 'User with this email already exists';
-    }
     return '';
   };
 
@@ -112,14 +107,7 @@ const UserForm: React.FC<Props> = ({
         <Text style={styles.successText}>{successMessage}</Text>
       ) : null}
 
-      <TouchableOpacity
-        style={[
-          styles.button,
-          submitted && errorMessage ? styles.buttonDisabled : null,
-        ]}
-        onPress={handleSubmit}
-        disabled={submitted && !!errorMessage}
-      >
+      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>{submitLabel}</Text>
       </TouchableOpacity>
     </View>
@@ -127,10 +115,7 @@ const UserForm: React.FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    marginVertical: 8,
-  },
+  container: { padding: 16, marginVertical: 8 },
   title: {
     fontSize: 20,
     fontWeight: '600',
@@ -167,14 +152,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
   },
-  buttonDisabled: {
-    backgroundColor: '#999',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 16,
-  },
+  buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });
 
 export default UserForm;

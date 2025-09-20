@@ -146,12 +146,17 @@ const MainApp: React.FC = () => {
             <UserForm
               title={editingId ? 'Edit User' : 'Add New User'}
               initialValues={initialValues}
-              onCheckDuplicate={email =>
-                users.some(u => u.email.toLowerCase() === email.toLowerCase())
+              onCheckDuplicate={(email, ignoreId) =>
+                users.some(
+                  u =>
+                    u.email.toLowerCase() === email.toLowerCase() &&
+                    u.id !== ignoreId,
+                )
               }
               onSubmit={handleSubmit}
               submitLabel={editingId ? 'Save' : 'Add User'}
             />
+
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={() => setModalVisible(false)}
