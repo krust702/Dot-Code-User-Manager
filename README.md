@@ -107,10 +107,6 @@ yarn ios
 - **Delete All Users** at once.
 - **Search Users** by name.
 - **Lazy loading / Pagination**: loads users 10 at a time.
-- **UX/UI improvements**:
-  - User cards with shadows and row separation.
-  - Highlighting the user being edited.
-  - Dynamic error messages and creation confirmation.
 
 ---
 
