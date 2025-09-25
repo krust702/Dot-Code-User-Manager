@@ -15,7 +15,7 @@ interface UserContextType {
   addUser: (user: Omit<User, 'id'>) => void;
   editUser: (id: string, updatedUser: Omit<User, 'id'>) => void;
   deleteUser: (id: string) => void;
-  isDuplicateEmail: (email: string) => boolean;
+  isDuplicateEmail: (email: string, excludeId?: string) => boolean;
 }
 
 const UserContext = createContext<UserContextType | null>(null);
@@ -27,33 +27,18 @@ export const UserProvider = ({
 }): JSX.Element => {
   const [users, setUsers] = useState<User[]>([]);
 
-  const generateTestUsers = (count: number): User[] => {
-    const testUsers: User[] = [];
-    for (let i = 1; i <= count; i++) {
-      testUsers.push({
-        id: uuid.v4().toString(),
-        firstName: `First${i}`,
-        lastName: `Last${i}`,
-        email: `test${i}@example.com`,
-      });
-    }
-    return testUsers;
-  };
-
   useEffect(() => {
     const load = async () => {
       try {
         const json = await AsyncStorage.getItem('@users_list');
         if (json) {
           const data = JSON.parse(json);
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setUsers(data);
             return;
           }
         }
-        const testUsers = generateTestUsers(100);
-        setUsers(testUsers);
-        await AsyncStorage.setItem('@users_list', JSON.stringify(testUsers));
+        setUsers([]);
       } catch {
         setUsers([]);
       }
@@ -65,21 +50,18 @@ export const UserProvider = ({
     AsyncStorage.setItem('@users_list', JSON.stringify(users)).catch(() => {});
   }, [users]);
 
+  const isDuplicateEmail = (email: string, excludeId?: string) =>
+    users.some(
+      u => u.email.toLowerCase() === email.toLowerCase() && u.id !== excludeId,
+    );
+
   const addUser = (user: Omit<User, 'id'>) => {
     if (isDuplicateEmail(user.email)) return;
     setUsers(prev => [...prev, { ...user, id: uuid.v4().toString() }]);
   };
 
   const editUser = (id: string, updatedUser: Omit<User, 'id'>) => {
-    if (
-      users.some(
-        u =>
-          u.email.toLowerCase() === updatedUser.email.toLowerCase() &&
-          u.id !== id,
-      )
-    )
-      return;
-
+    if (isDuplicateEmail(updatedUser.email, id)) return;
     setUsers(prev =>
       prev.map(u => (u.id === id ? { ...u, ...updatedUser } : u)),
     );
@@ -88,9 +70,6 @@ export const UserProvider = ({
   const deleteUser = (id: string) => {
     setUsers(prev => prev.filter(u => u.id !== id));
   };
-
-  const isDuplicateEmail = (email: string) =>
-    users.some(u => u.email.toLowerCase() === email.toLowerCase());
 
   return (
     <UserContext.Provider
